@@ -1,0 +1,29 @@
+2025-07-12 13:23:32,001 - __main__ - INFO - Starting Baby Sleep Tracker Bot...
+2025-07-12 13:23:32,001 - aiogram.dispatcher - INFO - Start polling
+2025-07-12 13:23:32,161 - aiogram.dispatcher - INFO - Run polling for bot @BabySleepControllerBot id=7975661596 - 'BabySleepController'
+2025-07-12 13:26:22,320 - aiogram.dispatcher - ERROR - Failed to fetch updates - TelegramConflictError: Telegram server says - Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+2025-07-12 13:26:22,320 - aiogram.dispatcher - WARNING - Sleep for 1.000000 seconds and try again... (tryings = 0, bot id = 7975661596)
+2025-07-12 13:26:27,499 - aiogram.dispatcher - ERROR - Failed to fetch updates - TelegramConflictError: Telegram server says - Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+2025-07-12 13:26:27,499 - aiogram.dispatcher - WARNING - Sleep for 1.112833 seconds and try again... (tryings = 1, bot id = 7975661596)
+2025-07-12 13:26:32,709 - aiogram.dispatcher - ERROR - Failed to fetch updates - TelegramConflictError: Telegram server says - Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+2025-07-12 13:26:32,709 - aiogram.dispatcher - WARNING - Sleep for 1.409592 seconds and try again... (tryings = 2, bot id = 7975661596)
+2025-07-12 13:26:38,266 - aiogram.dispatcher - ERROR - Failed to fetch updates - TelegramConflictError: Telegram server says - Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+2025-07-12 13:26:38,266 - aiogram.dispatcher - WARNING - Sleep for 1.986077 seconds and try again... (tryings = 3, bot id = 7975661596)
+2025-07-12 13:26:44,882 - aiogram.dispatcher - ERROR - Failed to fetch updates - TelegramConflictError: Telegram server says - Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+2025-07-12 13:26:44,882 - aiogram.dispatcher - WARNING - Sleep for 2.498946 seconds and try again... (tryings = 4, bot id = 7975661596)
+2025-07-12 13:26:57,474 - aiogram.dispatcher - INFO - Connection established (tryings = 5, bot id = 7975661596)
+2025-07-12 13:27:08,530 - aiogram.event - INFO - Update id=9874058 is handled. Duration 229 ms by bot id=7975661596
+2025-07-12 13:27:59,854 - aiogram.event - INFO - Update id=9874059 is handled. Duration 62 ms by bot id=7975661596
+2025-07-12 13:28:00,953 - aiogram.event - INFO - Update id=9874060 is handled. Duration 67 ms by bot id=7975661596
+2025-07-12 13:28:03,104 - aiogram.event - INFO - Update id=9874061 is handled. Duration 128 ms by bot id=7975661596
+2025-07-12 13:28:04,401 - aiogram.event - INFO - Update id=9874062 is handled. Duration 146 ms by bot id=7975661596
+2025-07-12 13:28:06,455 - aiogram.event - INFO - Update id=9874063 is handled. Duration 62 ms by bot id=7975661596
+2025-07-12 14:04:24,980 - aiogram.dispatcher - ERROR - Failed to fetch updates - TelegramNetworkError: HTTP Client says - Request timeout error
+2025-07-12 14:04:24,980 - aiogram.dispatcher - WARNING - Sleep for 1.000000 seconds and try again... (tryings = 0, bot id = 7975661596)
+2025-07-12 14:04:36,080 - aiogram.dispatcher - INFO - Connection established (tryings = 1, bot id = 7975661596)
+2025-07-12 14:43:15,182 - aiogram.dispatcher - ERROR - Failed to fetch updates - TelegramNetworkError: HTTP Client says - Request timeout error
+2025-07-12 14:43:15,183 - aiogram.dispatcher - WARNING - Sleep for 1.000000 seconds and try again... (tryings = 0, bot id = 7975661596)
+2025-07-12 14:43:26,294 - aiogram.dispatcher - INFO - Connection established (tryings = 1, bot id = 7975661596)
+2025-07-12 15:22:06,474 - aiogram.dispatcher - ERROR - Failed to fetch updates - TelegramNetworkError: HTTP Client says - Request timeout error
+2025-07-12 15:22:06,474 - aiogram.dispatcher - WARNING - Sleep for 1.000000 seconds and try again... (tryings = 0, bot id = 7975661596)
+2025-07-12 15:22:17,579 - aiogram.dispatcher - INFO - Connection established (tryings = 1, bot id = 7975661596)
