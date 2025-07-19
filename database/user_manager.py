@@ -3,8 +3,7 @@ from typing import Dict, Optional
 from supabase import create_client, Client
 from dotenv import load_dotenv
 
-# Load environment variables from parent directory
-load_dotenv(os.path.join(os.path.dirname(__file__), '..', '..', '.env'))
+load_dotenv()
 
 class UserManager:
     def __init__(self):
