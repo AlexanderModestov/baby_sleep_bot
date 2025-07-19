@@ -87,8 +87,37 @@ async def toggle_setting(callback: CallbackQuery):
     
     user_manager.update_user_settings(user_id, current_settings)
     
-    # Refresh the settings menu
-    await settings_menu(callback)
+    # Refresh the settings menu with error handling
+    try:
+        await settings_menu(callback)
+    except Exception:
+        # If edit fails, send a new message
+        user = user_manager.get_user(user_id)
+        settings = user.get("settings", {})
+        
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="✏️ Change Name", callback_data="change_name")],
+            [InlineKeyboardButton(
+                text=f"🔔 Notifications: {'ON' if settings.get('notifications_enabled', True) else 'OFF'}",
+                callback_data="toggle_notifications"
+            )],
+            [InlineKeyboardButton(
+                text=f"😴 Sleep Reminders: {'ON' if settings.get('sleep_reminders', True) else 'OFF'}",
+                callback_data="toggle_sleep_reminders"
+            )],
+            [InlineKeyboardButton(
+                text=f"☀️ Wake Reminders: {'ON' if settings.get('wake_reminders', True) else 'OFF'}",
+                callback_data="toggle_wake_reminders"
+            )],
+            [InlineKeyboardButton(text="🔙 Back to Main", callback_data="back_to_main")]
+        ])
+        
+        await callback.message.answer(
+            f"⚙️ Settings\n\n"
+            f"Current name: {user['custom_name']}\n\n"
+            f"Notification Settings:",
+            reply_markup=keyboard
+        )
 
 @router.callback_query(F.data == "back_to_main")
 async def back_to_main(callback: CallbackQuery):
