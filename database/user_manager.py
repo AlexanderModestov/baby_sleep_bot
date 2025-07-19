@@ -13,7 +13,11 @@ class UserManager:
         if not supabase_url or not supabase_key:
             raise ValueError("Supabase URL and key must be provided")
         
-        self.supabase: Client = create_client(supabase_url, supabase_key)
+        self.supabase: Client = create_client(
+            supabase_url, 
+            supabase_key,
+            options={}
+        )
     
     def register_user(self, user_id: int, telegram_data: Dict, custom_name: str = None) -> bool:
         """Register a new user or update existing user"""
