@@ -1,4 +1,4 @@
 aiogram==3.21.0
 python-dotenv==1.1.1
 requests==2.32.4
-supabase==2.4.0
+supabase==2.7.4

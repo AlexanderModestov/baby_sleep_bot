@@ -1,6 +1,7 @@
 import os
 from typing import Dict, Optional
 from supabase import create_client, Client
+from supabase.lib.client_options import ClientOptions
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -13,9 +14,11 @@ class UserManager:
         if not supabase_url or not supabase_key:
             raise ValueError("Supabase URL and key must be provided")
         
+        options = ClientOptions()
         self.supabase: Client = create_client(
             supabase_url, 
-            supabase_key
+            supabase_key,
+            options
         )
     
     def register_user(self, user_id: int, telegram_data: Dict, custom_name: str = None) -> bool:
