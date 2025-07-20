@@ -15,8 +15,7 @@ class UserManager:
         
         self.supabase: Client = create_client(
             supabase_url, 
-            supabase_key,
-            options={}
+            supabase_key
         )
     
     def register_user(self, user_id: int, telegram_data: Dict, custom_name: str = None) -> bool:
