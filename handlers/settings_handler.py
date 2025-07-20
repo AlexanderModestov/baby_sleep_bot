@@ -33,24 +33,23 @@ async def settings_menu(callback: CallbackQuery):
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="✏️ Change Name", callback_data="change_name")],
         [InlineKeyboardButton(
-            text=f"🔔 Notifications: {'ON' if settings.get('notifications_enabled', True) else 'OFF'}",
-            callback_data="toggle_notifications"
+            text=f"🔔 Notifications: Coming Soon",
+            callback_data="feature_coming_soon"
         )],
         [InlineKeyboardButton(
-            text=f"😴 Sleep Reminders: {'ON' if settings.get('sleep_reminders', True) else 'OFF'}",
-            callback_data="toggle_sleep_reminders"
+            text=f"😴 Sleep Reminders: Coming Soon",
+            callback_data="feature_coming_soon"
         )],
         [InlineKeyboardButton(
-            text=f"☀️ Wake Reminders: {'ON' if settings.get('wake_reminders', True) else 'OFF'}",
-            callback_data="toggle_wake_reminders"
+            text=f"☀️ Wake Reminders: Coming Soon",
+            callback_data="feature_coming_soon"
         )],
         [InlineKeyboardButton(text="🔙 Back to Main", callback_data="back_to_main")]
     ])
     
     await callback.message.edit_text(
         f"⚙️ Settings\n\n"
-        f"Current name: {user['custom_name']}\n\n"
-        f"Notification Settings:",
+        f"Current name: {user['custom_name']}",
         reply_markup=keyboard
     )
 
@@ -65,59 +64,12 @@ async def change_name(callback: CallbackQuery, state: FSMContext):
         "Please enter your new name:"
     )
 
-@router.callback_query(F.data.startswith("toggle_"))
-async def toggle_setting(callback: CallbackQuery):
+@router.callback_query(F.data == "feature_coming_soon")
+async def feature_coming_soon(callback: CallbackQuery):
     try:
-        await callback.answer()
+        await callback.answer("This feature will be available in the next update! 🚀", show_alert=True)
     except Exception:
         pass  # Ignore callback answer errors (query too old)
-    user_id = callback.from_user.id
-    setting_name = callback.data.replace("toggle_", "")
-    
-    user = user_manager.get_user(user_id)
-    current_settings = user.get("settings", {})
-    
-    # Toggle the setting
-    if setting_name == "notifications":
-        current_settings["notifications_enabled"] = not current_settings.get("notifications_enabled", True)
-    elif setting_name == "sleep_reminders":
-        current_settings["sleep_reminders"] = not current_settings.get("sleep_reminders", True)
-    elif setting_name == "wake_reminders":
-        current_settings["wake_reminders"] = not current_settings.get("wake_reminders", True)
-    
-    user_manager.update_user_settings(user_id, current_settings)
-    
-    # Refresh the settings menu with error handling
-    try:
-        await settings_menu(callback)
-    except Exception:
-        # If edit fails, send a new message
-        user = user_manager.get_user(user_id)
-        settings = user.get("settings", {})
-        
-        keyboard = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text="✏️ Change Name", callback_data="change_name")],
-            [InlineKeyboardButton(
-                text=f"🔔 Notifications: {'ON' if settings.get('notifications_enabled', True) else 'OFF'}",
-                callback_data="toggle_notifications"
-            )],
-            [InlineKeyboardButton(
-                text=f"😴 Sleep Reminders: {'ON' if settings.get('sleep_reminders', True) else 'OFF'}",
-                callback_data="toggle_sleep_reminders"
-            )],
-            [InlineKeyboardButton(
-                text=f"☀️ Wake Reminders: {'ON' if settings.get('wake_reminders', True) else 'OFF'}",
-                callback_data="toggle_wake_reminders"
-            )],
-            [InlineKeyboardButton(text="🔙 Back to Main", callback_data="back_to_main")]
-        ])
-        
-        await callback.message.answer(
-            f"⚙️ Settings\n\n"
-            f"Current name: {user['custom_name']}\n\n"
-            f"Notification Settings:",
-            reply_markup=keyboard
-        )
 
 @router.callback_query(F.data == "back_to_main")
 async def back_to_main(callback: CallbackQuery):
