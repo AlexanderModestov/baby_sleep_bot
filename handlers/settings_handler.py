@@ -6,6 +6,7 @@ from aiogram.fsm.state import State, StatesGroup
 import urllib.parse
 
 from database.user_manager import UserManager
+from config.settings import NOTIFICATION_INTERVAL_MINUTES
 
 router = Router()
 user_manager = UserManager()
@@ -30,20 +31,25 @@ async def settings_menu(callback: CallbackQuery):
     user = user_manager.get_user(user_id)
     settings = user.get("settings", {})
     
+    notifications_status = "✅ ON" if settings.get("notifications_enabled", True) else "❌ OFF"
+    sleep_reminders_status = "✅ ON" if settings.get("sleep_reminders", True) else "❌ OFF"
+    wake_reminders_status = "✅ ON" if settings.get("wake_reminders", True) else "❌ OFF"
+    
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="✏️ Change Name", callback_data="change_name")],
         [InlineKeyboardButton(
-            text=f"🔔 Notifications: Coming Soon",
-            callback_data="feature_coming_soon"
+            text=f"🔔 Notifications: {notifications_status}",
+            callback_data="toggle_notifications"
         )],
         [InlineKeyboardButton(
-            text=f"😴 Sleep Reminders: Coming Soon",
-            callback_data="feature_coming_soon"
+            text=f"😴 Sleep Reminders: {sleep_reminders_status}",
+            callback_data="toggle_sleep_reminders"
         )],
         [InlineKeyboardButton(
-            text=f"☀️ Wake Reminders: Coming Soon",
-            callback_data="feature_coming_soon"
+            text=f"☀️ Wake Reminders: {wake_reminders_status}",
+            callback_data="toggle_wake_reminders"
         )],
+        [InlineKeyboardButton(text="🧪 Test Reminder", callback_data="test_reminder")],
         [InlineKeyboardButton(text="🔙 Back to Main", callback_data="back_to_main")]
     ])
     
@@ -64,12 +70,97 @@ async def change_name(callback: CallbackQuery, state: FSMContext):
         "Please enter your new name:"
     )
 
-@router.callback_query(F.data == "feature_coming_soon")
-async def feature_coming_soon(callback: CallbackQuery):
+@router.callback_query(F.data == "toggle_notifications")
+async def toggle_notifications(callback: CallbackQuery):
     try:
-        await callback.answer("This feature will be available in the next update! 🚀", show_alert=True)
+        await callback.answer()
     except Exception:
-        pass  # Ignore callback answer errors (query too old)
+        pass
+    
+    user_id = callback.from_user.id
+    user = user_manager.get_user(user_id)
+    current_setting = user.get("settings", {}).get("notifications_enabled", True)
+    
+    user_manager.update_user_settings(user_id, {"notifications_enabled": not current_setting})
+    
+    await settings_menu(callback)
+
+@router.callback_query(F.data == "toggle_sleep_reminders")
+async def toggle_sleep_reminders(callback: CallbackQuery):
+    try:
+        await callback.answer()
+    except Exception:
+        pass
+    
+    user_id = callback.from_user.id
+    user = user_manager.get_user(user_id)
+    current_setting = user.get("settings", {}).get("sleep_reminders", True)
+    
+    user_manager.update_user_settings(user_id, {"sleep_reminders": not current_setting})
+    
+    await settings_menu(callback)
+
+@router.callback_query(F.data == "toggle_wake_reminders")
+async def toggle_wake_reminders(callback: CallbackQuery):
+    try:
+        await callback.answer()
+    except Exception:
+        pass
+    
+    user_id = callback.from_user.id
+    user = user_manager.get_user(user_id)
+    current_setting = user.get("settings", {}).get("wake_reminders", True)
+    
+    user_manager.update_user_settings(user_id, {"wake_reminders": not current_setting})
+    
+    await settings_menu(callback)
+
+@router.callback_query(F.data == "test_reminder")
+async def test_reminder(callback: CallbackQuery):
+    try:
+        await callback.answer()
+    except Exception:
+        pass
+    
+    user_id = callback.from_user.id
+    children_needing_reminders = user_manager.get_children_needing_reminders(user_id)
+    
+    if children_needing_reminders:
+        child_names = [info['child']['name'] for info in children_needing_reminders]
+        status_msg = f"✅ Found {len(children_needing_reminders)} child(ren) needing reminders: {', '.join(child_names)}"
+    else:
+        status_msg = "✅ No children need reminders at this time"
+    
+    # Add timestamp to prevent identical message error
+    from datetime import datetime
+    timestamp = datetime.now().strftime("%H:%M:%S")
+    
+    try:
+        await callback.message.edit_text(
+            "🧪 Test Reminder\n\n"
+            f"{status_msg}\n\n"
+            "📋 Notification System Status:\n"
+            f"• Checks every {NOTIFICATION_INTERVAL_MINUTES} minutes automatically\n"
+            "• Sends reminders when no sessions logged\n"
+            "• Or when last session > 2x recommended sleep duration\n\n"
+            "🔧 Based on age recommendations:\n"
+            "• 0-3 months: 2 hours sleep duration\n"
+            "• 3-6 months: 1.5 hours sleep duration\n"
+            "• 6-12 months: 1.5 hours sleep duration\n"
+            "• 12-24 months: 2 hours sleep duration\n"
+            "• 2+ years: 1.5 hours sleep duration\n\n"
+            f"🕐 Last checked: {timestamp}",
+            reply_markup=InlineKeyboardMarkup(inline_keyboard=[
+                [InlineKeyboardButton(text="🔄 Check Again", callback_data="test_reminder")],
+                [InlineKeyboardButton(text="🔙 Back to Settings", callback_data="settings")]
+            ])
+        )
+    except Exception as e:
+        # If edit fails, just answer the callback
+        try:
+            await callback.answer(f"Status: {status_msg}", show_alert=True)
+        except Exception:
+            pass
 
 @router.callback_query(F.data == "back_to_main")
 async def back_to_main(callback: CallbackQuery):
