@@ -98,7 +98,7 @@ class UserManager:
             
             for user in result.data:
                 settings = user.get('settings', {})
-                if settings.get('notifications_enabled', False) and settings.get('sleep_reminders', False):
+                if settings.get('notifications_enabled', False):
                     users_with_notifications.append(user)
             
             return users_with_notifications
