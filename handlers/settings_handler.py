@@ -33,7 +33,6 @@ async def settings_menu(callback: CallbackQuery):
     
     notifications_status = "✅ ON" if settings.get("notifications_enabled", True) else "❌ OFF"
     sleep_reminders_status = "✅ ON" if settings.get("sleep_reminders", True) else "❌ OFF"
-    wake_reminders_status = "✅ ON" if settings.get("wake_reminders", True) else "❌ OFF"
     
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="✏️ Change Name", callback_data="change_name")],
@@ -44,10 +43,6 @@ async def settings_menu(callback: CallbackQuery):
         [InlineKeyboardButton(
             text=f"😴 Sleep Reminders: {sleep_reminders_status}",
             callback_data="toggle_sleep_reminders"
-        )],
-        [InlineKeyboardButton(
-            text=f"☀️ Wake Reminders: {wake_reminders_status}",
-            callback_data="toggle_wake_reminders"
         )],
         [InlineKeyboardButton(text="🔙 Back to Main", callback_data="back_to_main")]
     ])
@@ -99,20 +94,6 @@ async def toggle_sleep_reminders(callback: CallbackQuery):
     
     await settings_menu(callback)
 
-@router.callback_query(F.data == "toggle_wake_reminders")
-async def toggle_wake_reminders(callback: CallbackQuery):
-    try:
-        await callback.answer()
-    except Exception:
-        pass
-    
-    user_id = callback.from_user.id
-    user = user_manager.get_user(user_id)
-    current_setting = user.get("settings", {}).get("wake_reminders", True)
-    
-    user_manager.update_user_settings(user_id, {"wake_reminders": not current_setting})
-    
-    await settings_menu(callback)
 
 
 @router.callback_query(F.data == "back_to_main")
@@ -158,7 +139,6 @@ async def cancel_name_change_for_settings(message: Message, state: FSMContext):
     
     notifications_status = "✅ ON" if settings.get("notifications_enabled", True) else "❌ OFF"
     sleep_reminders_status = "✅ ON" if settings.get("sleep_reminders", True) else "❌ OFF"
-    wake_reminders_status = "✅ ON" if settings.get("wake_reminders", True) else "❌ OFF"
     
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="✏️ Change Name", callback_data="change_name")],
@@ -169,10 +149,6 @@ async def cancel_name_change_for_settings(message: Message, state: FSMContext):
         [InlineKeyboardButton(
             text=f"😴 Sleep Reminders: {sleep_reminders_status}",
             callback_data="toggle_sleep_reminders"
-        )],
-        [InlineKeyboardButton(
-            text=f"☀️ Wake Reminders: {wake_reminders_status}",
-            callback_data="toggle_wake_reminders"
         )],
         [InlineKeyboardButton(text="🔙 Back to Main", callback_data="back_to_main")]
     ])
@@ -199,7 +175,6 @@ async def settings_command(message: Message):
     
     notifications_status = "✅ ON" if settings.get("notifications_enabled", True) else "❌ OFF"
     sleep_reminders_status = "✅ ON" if settings.get("sleep_reminders", True) else "❌ OFF"
-    wake_reminders_status = "✅ ON" if settings.get("wake_reminders", True) else "❌ OFF"
     
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="✏️ Change Name", callback_data="change_name")],
@@ -210,10 +185,6 @@ async def settings_command(message: Message):
         [InlineKeyboardButton(
             text=f"😴 Sleep Reminders: {sleep_reminders_status}",
             callback_data="toggle_sleep_reminders"
-        )],
-        [InlineKeyboardButton(
-            text=f"☀️ Wake Reminders: {wake_reminders_status}",
-            callback_data="toggle_wake_reminders"
         )],
         [InlineKeyboardButton(text="🔙 Back to Main", callback_data="back_to_main")]
     ])
