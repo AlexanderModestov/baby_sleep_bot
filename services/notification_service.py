@@ -42,9 +42,16 @@ class NotificationService:
                 message = f"⏰ Hi! It's time to log sleep sessions for {', '.join(child_names)}.\n\n"
                 message += "Don't forget to track your babies' sleep patterns! 💤"
             
-            # Create inline keyboard with link to webapp
-            webapp_url = os.getenv('WEBAPP_URL', 'https://your-webapp-url.com')
+            # Get user info for consistent URL parameters
+            user = self.user_manager.get_user(user_id)
+            custom_name = user['custom_name'] if user and user['custom_name'] else 'User'
+            
+            # Create inline keyboard with link to webapp (consistent with start button)
+            from config.settings import WEBAPP_URL
+            import urllib.parse
             from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
+            
+            webapp_url = f"{WEBAPP_URL}?telegram_user_id={user_id}&custom_name={urllib.parse.quote(custom_name)}"
             
             keyboard = InlineKeyboardMarkup(inline_keyboard=[[
                 InlineKeyboardButton(
