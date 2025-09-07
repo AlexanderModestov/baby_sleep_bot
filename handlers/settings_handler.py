@@ -6,10 +6,12 @@ from aiogram.fsm.state import State, StatesGroup
 import urllib.parse
 
 from database.user_manager import UserManager
+from database.notification_manager import NotificationManager
 from config.settings import NOTIFICATION_INTERVAL_MINUTES
 
 router = Router()
 user_manager = UserManager()
+notification_manager = NotificationManager()
 
 class SettingsStates(StatesGroup):
     waiting_for_name_change = State()
@@ -29,20 +31,29 @@ async def settings_menu(callback: CallbackQuery):
         return
     
     user = user_manager.get_user(user_id)
-    settings = user.get("settings", {})
     
-    notifications_status = "✅ ON" if settings.get("notifications_enabled", True) else "❌ OFF"
-    sleep_reminders_status = "✅ ON" if settings.get("sleep_reminders", True) else "❌ OFF"
+    # Check notification preferences using the new system
+    sleep_reminders_enabled = notification_manager.is_notification_enabled(user_id, notification_manager.SLEEP_REMINDERS)
+    bedtime_alerts_enabled = notification_manager.is_notification_enabled(user_id, notification_manager.BEDTIME_ALERTS)
+    wake_reminders_enabled = notification_manager.is_notification_enabled(user_id, notification_manager.WAKE_REMINDERS)
+    
+    sleep_reminders_status = "✅ ON" if sleep_reminders_enabled else "❌ OFF"
+    bedtime_alerts_status = "✅ ON" if bedtime_alerts_enabled else "❌ OFF"
+    wake_reminders_status = "✅ ON" if wake_reminders_enabled else "❌ OFF"
     
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="✏️ Change Name", callback_data="change_name")],
         [InlineKeyboardButton(
-            text=f"🔔 Notifications: {notifications_status}",
-            callback_data="toggle_notifications"
-        )],
-        [InlineKeyboardButton(
             text=f"😴 Sleep Reminders: {sleep_reminders_status}",
             callback_data="toggle_sleep_reminders"
+        )],
+        [InlineKeyboardButton(
+            text=f"🌙 Bedtime Alerts: {bedtime_alerts_status}",
+            callback_data="toggle_bedtime_alerts"
+        )],
+        [InlineKeyboardButton(
+            text=f"☀️ Wake Reminders: {wake_reminders_status}",
+            callback_data="toggle_wake_reminders"
         )],
         [InlineKeyboardButton(text="🔙 Back to Main", callback_data="back_to_main")]
     ])
@@ -64,18 +75,31 @@ async def change_name(callback: CallbackQuery, state: FSMContext):
         "Please enter your new name:"
     )
 
-@router.callback_query(F.data == "toggle_notifications")
-async def toggle_notifications(callback: CallbackQuery):
+@router.callback_query(F.data == "toggle_bedtime_alerts")
+async def toggle_bedtime_alerts(callback: CallbackQuery):
     try:
         await callback.answer()
     except Exception:
         pass
     
     user_id = callback.from_user.id
-    user = user_manager.get_user(user_id)
-    current_setting = user.get("settings", {}).get("notifications_enabled", True)
+    current_setting = notification_manager.is_notification_enabled(user_id, notification_manager.BEDTIME_ALERTS)
     
-    user_manager.update_user_settings(user_id, {"notifications_enabled": not current_setting})
+    notification_manager.set_notification_preference(user_id, notification_manager.BEDTIME_ALERTS, not current_setting)
+    
+    await settings_menu(callback)
+
+@router.callback_query(F.data == "toggle_wake_reminders")
+async def toggle_wake_reminders(callback: CallbackQuery):
+    try:
+        await callback.answer()
+    except Exception:
+        pass
+    
+    user_id = callback.from_user.id
+    current_setting = notification_manager.is_notification_enabled(user_id, notification_manager.WAKE_REMINDERS)
+    
+    notification_manager.set_notification_preference(user_id, notification_manager.WAKE_REMINDERS, not current_setting)
     
     await settings_menu(callback)
 
@@ -87,10 +111,9 @@ async def toggle_sleep_reminders(callback: CallbackQuery):
         pass
     
     user_id = callback.from_user.id
-    user = user_manager.get_user(user_id)
-    current_setting = user.get("settings", {}).get("sleep_reminders", True)
+    current_setting = notification_manager.is_notification_enabled(user_id, notification_manager.SLEEP_REMINDERS)
     
-    user_manager.update_user_settings(user_id, {"sleep_reminders": not current_setting})
+    notification_manager.set_notification_preference(user_id, notification_manager.SLEEP_REMINDERS, not current_setting)
     
     await settings_menu(callback)
 
@@ -135,20 +158,29 @@ async def cancel_name_change_for_settings(message: Message, state: FSMContext):
         return
     
     user = user_manager.get_user(user_id)
-    settings = user.get("settings", {})
     
-    notifications_status = "✅ ON" if settings.get("notifications_enabled", True) else "❌ OFF"
-    sleep_reminders_status = "✅ ON" if settings.get("sleep_reminders", True) else "❌ OFF"
+    # Check notification preferences using the new system
+    sleep_reminders_enabled = notification_manager.is_notification_enabled(user_id, notification_manager.SLEEP_REMINDERS)
+    bedtime_alerts_enabled = notification_manager.is_notification_enabled(user_id, notification_manager.BEDTIME_ALERTS)
+    wake_reminders_enabled = notification_manager.is_notification_enabled(user_id, notification_manager.WAKE_REMINDERS)
+    
+    sleep_reminders_status = "✅ ON" if sleep_reminders_enabled else "❌ OFF"
+    bedtime_alerts_status = "✅ ON" if bedtime_alerts_enabled else "❌ OFF"
+    wake_reminders_status = "✅ ON" if wake_reminders_enabled else "❌ OFF"
     
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="✏️ Change Name", callback_data="change_name")],
         [InlineKeyboardButton(
-            text=f"🔔 Notifications: {notifications_status}",
-            callback_data="toggle_notifications"
-        )],
-        [InlineKeyboardButton(
             text=f"😴 Sleep Reminders: {sleep_reminders_status}",
             callback_data="toggle_sleep_reminders"
+        )],
+        [InlineKeyboardButton(
+            text=f"🌙 Bedtime Alerts: {bedtime_alerts_status}",
+            callback_data="toggle_bedtime_alerts"
+        )],
+        [InlineKeyboardButton(
+            text=f"☀️ Wake Reminders: {wake_reminders_status}",
+            callback_data="toggle_wake_reminders"
         )],
         [InlineKeyboardButton(text="🔙 Back to Main", callback_data="back_to_main")]
     ])
@@ -171,20 +203,29 @@ async def settings_command(message: Message):
         return
     
     user = user_manager.get_user(user_id)
-    settings = user.get("settings", {})
     
-    notifications_status = "✅ ON" if settings.get("notifications_enabled", True) else "❌ OFF"
-    sleep_reminders_status = "✅ ON" if settings.get("sleep_reminders", True) else "❌ OFF"
+    # Check notification preferences using the new system
+    sleep_reminders_enabled = notification_manager.is_notification_enabled(user_id, notification_manager.SLEEP_REMINDERS)
+    bedtime_alerts_enabled = notification_manager.is_notification_enabled(user_id, notification_manager.BEDTIME_ALERTS)
+    wake_reminders_enabled = notification_manager.is_notification_enabled(user_id, notification_manager.WAKE_REMINDERS)
+    
+    sleep_reminders_status = "✅ ON" if sleep_reminders_enabled else "❌ OFF"
+    bedtime_alerts_status = "✅ ON" if bedtime_alerts_enabled else "❌ OFF"
+    wake_reminders_status = "✅ ON" if wake_reminders_enabled else "❌ OFF"
     
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="✏️ Change Name", callback_data="change_name")],
         [InlineKeyboardButton(
-            text=f"🔔 Notifications: {notifications_status}",
-            callback_data="toggle_notifications"
-        )],
-        [InlineKeyboardButton(
             text=f"😴 Sleep Reminders: {sleep_reminders_status}",
             callback_data="toggle_sleep_reminders"
+        )],
+        [InlineKeyboardButton(
+            text=f"🌙 Bedtime Alerts: {bedtime_alerts_status}",
+            callback_data="toggle_bedtime_alerts"
+        )],
+        [InlineKeyboardButton(
+            text=f"☀️ Wake Reminders: {wake_reminders_status}",
+            callback_data="toggle_wake_reminders"
         )],
         [InlineKeyboardButton(text="🔙 Back to Main", callback_data="back_to_main")]
     ])

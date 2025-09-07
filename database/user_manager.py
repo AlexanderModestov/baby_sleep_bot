@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from supabase import create_client, Client
 from supabase.lib.client_options import ClientOptions
 from dotenv import load_dotenv
+from .notification_manager import NotificationManager
 
 load_dotenv()
 
@@ -21,6 +22,7 @@ class UserManager:
             supabase_key,
             options
         )
+        self.notification_manager = NotificationManager()
     
     def register_user(self, user_id: int, telegram_data: Dict, custom_name: str = None) -> bool:
         """Register a new user or update existing user"""
@@ -40,6 +42,10 @@ class UserManager:
             }
             
             result = self.supabase.table('users').upsert(user_data).execute()
+            
+            # Initialize notification preferences for new user
+            self.notification_manager.initialize_user_notifications(user_id)
+            
             return True
         except Exception as e:
             print(f"Error registering user: {e}")
@@ -91,7 +97,7 @@ class UserManager:
             return False
 
     def get_users_for_notifications(self) -> List[Dict]:
-        """Get all users with notifications enabled who need reminders"""
+        """Get all users with notifications enabled who need reminders (legacy method)"""
         try:
             result = self.supabase.table('users').select('*').execute()
             users_with_notifications = []
@@ -105,6 +111,25 @@ class UserManager:
         except Exception as e:
             print(f"Error getting users for notifications: {e}")
             return []
+    
+    def get_users_for_notification_type(self, notification_type: str) -> List[Dict]:
+        """Get users who have a specific notification type enabled using new notification system"""
+        return self.notification_manager.get_users_for_notification_type(notification_type)
+    
+    def is_notification_enabled(self, user_id: int, notification_type: str) -> bool:
+        """Check if a notification type is enabled for a user"""
+        return self.notification_manager.is_notification_enabled(user_id, notification_type)
+    
+    def set_notification_preference(self, user_id: int, notification_type: str, enabled: bool) -> bool:
+        """Set notification preference for a user"""
+        return self.notification_manager.set_notification_preference(user_id, notification_type, enabled)
+    
+    def log_notification_sent(self, user_id: int, notification_type: str, message_text: str, 
+                            child_id: Optional[str] = None, success: bool = True) -> bool:
+        """Log that a notification was sent"""
+        return self.notification_manager.log_notification_sent(
+            user_id, notification_type, message_text, child_id, success=success
+        )
 
     def get_child_age_in_months(self, child_id: str) -> Optional[int]:
         """Calculate child's age in months from date of birth"""
@@ -132,6 +157,57 @@ class UserManager:
             return {'wake_window': 180, 'sleep_duration': 120, 'description': 'toddler (12-24 months)'}
         else:
             return {'wake_window': 240, 'sleep_duration': 90, 'description': 'young child (2+ years)'}
+
+    def get_children_needing_bedtime_alerts(self, user_id: int) -> List[Dict]:
+        """Get children who should go to bed within 10 minutes based on their last sleep session and age-based wake windows"""
+        try:
+            # Get user's children
+            children_result = self.supabase.table('children').select('*').eq('user_id', 
+                self.get_user(user_id)['id']).execute()
+            
+            children_needing_bedtime = []
+            
+            for child in children_result.data:
+                # Get child's age and recommendations
+                age_months = self.get_child_age_in_months(child['id'])
+                if age_months is None:
+                    continue
+                    
+                recommendations = self.get_age_based_recommendations(age_months)
+                wake_window_minutes = recommendations['wake_window']
+                
+                # Get latest sleep session for this child
+                sessions_result = self.supabase.table('sleep_sessions').select('*').eq(
+                    'child_id', child['id']
+                ).order('end_time', desc=True).limit(1).execute()
+                
+                if sessions_result.data:
+                    last_session = sessions_result.data[0]
+                    last_end_time = datetime.fromisoformat(last_session['end_time'].replace('Z', '+00:00'))
+                    
+                    # Calculate when child should go to bed next (last sleep end + wake window)
+                    next_sleep_time = last_end_time.replace(tzinfo=None) + timedelta(minutes=wake_window_minutes)
+                    
+                    # Check if bedtime is within 10 minutes from now
+                    now = datetime.now()
+                    time_until_bedtime = next_sleep_time - now
+                    
+                    # Alert if bedtime is between 0 and 10 minutes away
+                    if timedelta(minutes=0) <= time_until_bedtime <= timedelta(minutes=10):
+                        child_info = {
+                            'child': child,
+                            'age_months': age_months,
+                            'recommendations': recommendations,
+                            'next_sleep_time': next_sleep_time.isoformat(),
+                            'minutes_until_bedtime': int(time_until_bedtime.total_seconds() // 60)
+                        }
+                        children_needing_bedtime.append(child_info)
+            
+            return children_needing_bedtime
+            
+        except Exception as e:
+            print(f"Error getting children needing bedtime alerts: {e}")
+            return []
 
     def get_children_needing_reminders(self, user_id: int) -> List[Dict]:
         """Get children who haven't had sleep sessions logged recently"""
